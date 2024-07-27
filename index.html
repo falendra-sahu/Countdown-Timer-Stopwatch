@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Stopwatch</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e2e2e2, #ffffff);
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            font-weight: 600;
+        }
+        #stopwatch {
+            font-size: 4em;
+            color: #333;
+            font-weight: 700;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .controls button {
+            background: #007bff;
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            font-size: 1em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .controls button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+        .controls button:disabled {
+            background: #cfd8dc;
+            cursor: not-allowed;
+        }
+        #laps {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #laps h2 {
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            color: #007bff;
+            font-weight: 600;
+        }
+        .lap {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.2em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Stopwatch</h1>
+        <div id="stopwatch">00:00:00.000</div>
+        <div class="controls">
+            <button id="start">Start</button>
+            <button id="pause" disabled>Pause</button>
+            <button id="resume" disabled>Resume</button>
+            <button id="reset">Reset</button>
+            <button id="lap">Lap</button>
+        </div>
+        <div id="laps">
+            <h2>Laps</h2>
+            <div id="lapList"></div>
+        </div>
+    </div>
+    <script>
+        let startTime, updatedTime, difference, tInterval, running = false, paused = false;
+        let pausedTime = 0, lapCounter = 1;
+
+        function formatTime(ms) {
+            const hours = Math.floor(ms / (1000 * 60 * 60));
+            const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+            const milliseconds = ms % 1000;
+            return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${pad(milliseconds, 3)}`;
+        }
+
+        function pad(value, length = 2) {
+            return String(value).padStart(length, '0');
+        }
+
+        function startTimer() {
+            if (!running) {
+                running = true;
+                startTime = new Date().getTime() - pausedTime;
+                tInterval = setInterval(updateTime, 1);
+                document.getElementById('start').disabled = true;
+                document.getElementById('pause').disabled = false;
+                document.getElementById('reset').disabled = false;
+            }
+        }
+
+        function updateTime() {
+            updatedTime = new Date().getTime();
+            difference = updatedTime - startTime;
+            document.getElementById('stopwatch').textContent = formatTime(difference);
+        }
+
+        function pauseTimer() {
+            if (running && !paused) {
+                clearInterval(tInterval);
+                paused = true;
+                pausedTime = new Date().getTime() - startTime;
+                document.getElementById('pause').disabled = true;
+                document.getElementById('resume').disabled = false;
+            }
+        }
+
+        function resumeTimer() {
+            if (paused) {
+                running = true;
+                paused = false;
+                startTime = new Date().getTime() - pausedTime;
+                tInterval = setInterval(updateTime, 1);
+                document.getElementById('pause').disabled = false;
+                document.getElementById('resume').disabled = true;
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(tInterval);
+            running = false;
+            paused = false;
+            pausedTime = 0;
+            document.getElementById('stopwatch').textContent = '00:00:00.000';
+            document.getElementById('lapList').innerHTML = '';
+            lapCounter = 1;
+            document.getElementById('start').disabled = false;
+            document.getElementById('pause').disabled = true;
+            document.getElementById('resume').disabled = true;
+            document.getElementById('reset').disabled = true;
+        }
+
+        function recordLap() {
+            if (running || paused) {
+                const lapTime = formatTime(difference);
+                const lapElement = document.createElement('div');
+                lapElement.className = 'lap';
+                lapElement.textContent = `Lap ${lapCounter}: ${lapTime}`;
+                document.getElementById('lapList').appendChild(lapElement);
+                lapCounter++;
+            }
+        }
+
+        document.getElementById('start').addEventListener('click', startTimer);
+        document.getElementById('pause').addEventListener('click', pauseTimer);
+        document.getElementById('resume').addEventListener('click', resumeTimer);
+        document.getElementById('reset').addEventListener('click', resetTimer);
+        document.getElementById('lap').addEventListener('click', recordLap);
+    </script>
+</body>
+</html>
